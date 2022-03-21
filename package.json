@@ -1,0 +1,35 @@
+{
+  "name": "remove_exif_bot",
+  "version": "1.0.0",
+  "description": "Bot for remove exif data from original image file",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Daniil-Pavenko/remove_exif_bot.git"
+  },
+  "keywords": [
+    "bot",
+    "telegra",
+    "remove",
+    "exif",
+    "exif",
+    "image",
+    "jpg",
+    "png"
+  ],
+  "author": "Danylo Pavenko",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Daniil-Pavenko/remove_exif_bot/issues"
+  },
+  "homepage": "https://github.com/Daniil-Pavenko/remove_exif_bot#readme",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "dotenv": "^16.0.0",
+    "form-data": "^4.0.0",
+    "telegraf": "^4.7.0"
+  }
+}
