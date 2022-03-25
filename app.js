@@ -46,7 +46,10 @@ async function handleFile(ctx) {
 	if (ctx.message.photo === undefined) {
 		file = ctx.message.document
 	} else {
-		file = ctx.message.photo[ctx.message.photo.length - 1].file_id
+		file = ctx.message.photo
+	}
+	if (file instanceof Array) {
+		file = file[file.length - 1]
 	}
 	let fileId = file.file_id
 	let fileData = await bot.telegram.getFile(fileId)
