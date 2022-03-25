@@ -23,7 +23,32 @@ bot.start((ctx) => {
 
 bot.on('photo', async (ctx) => {
 	console.log('Receive photo')
-	let fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id
+	await handleFile(ctx)
+})
+bot.on('document', async (ctx) => {
+	console.log('Receive document')
+	await handleFile(ctx)
+})
+bot.on('message', (ctx) => {
+	console.log(`Received messages: ${ctx.message.text}`)
+	if (ctx.message.text === 'clear all files [admin]') {
+		let imagesFolder = path.resolve() + '/images'
+		exec(`rm -rf ${imagesFolder}`, (err) => {
+			if (err != null) console.log(err)
+		})
+		ctx.reply(`Images folder was cleared!`)
+	}
+})
+
+async function handleFile(ctx) {
+	ctx.replyWithChatAction('typing')
+	var file
+	if (ctx.message.photo === undefined) {
+		file = ctx.message.document
+	} else {
+		file = ctx.message.photo[ctx.message.photo.length - 1].file_id
+	}
+	let fileId = file.file_id
 	let fileData = await bot.telegram.getFile(fileId)
 	let imageUrl = `https://api.telegram.org/file/bot${TOKEN}/${fileData.file_path}`
 	try {
@@ -38,34 +63,30 @@ bot.on('photo', async (ctx) => {
 		}
 		let fileName = `clear_image_${randomUUID()}.jpg`
 		let filePath = `images/${fileName}`
+		ctx.replyWithChatAction('upload_photo')
 		let stream = fs.createWriteStream(filePath)
 		response.data.pipe(stream)
 		stream.on('close', () => {
-			let imageFile = fs.readFileSync(path.resolve() + '/' + filePath)
-			let clearedFile = exifremove.remove(imageFile)
-			fs.writeFileSync(filePath, clearedFile)
-			ctx.replyWithPhoto({ 
-				source: imageFile,
-				filename: fileName
-			}, {
-				caption: 'Фото очищено від метаданих.'
-			})
+			try {
+				let imageFile = fs.readFileSync(path.resolve() + '/' + filePath)
+				let clearedFile = exifremove.remove(imageFile)
+				fs.writeFileSync(filePath, clearedFile)
+				ctx.replyWithPhoto({ 
+					source: imageFile,
+					filename: fileName
+				}, {
+					caption: 'Фото очищено від метаданих.'
+				})
+			} catch (error) {
+				console.log(error)
+				ctx.replyWithHTML(`Помилка: ${error.message}`)		
+			}
 		})
 	} catch (error) {
 		console.log(error)
 		ctx.replyWithHTML(`Помилка: ${error.message}`)
 	}
-})
-bot.on('message', (ctx) => {
-	console.log(`Received messages: ${ctx.message.text}`)
-	if (ctx.message.text === 'clear all files [admin]') {
-		let imagesFolder = path.resolve() + '/images'
-		exec(`rm -rf ${imagesFolder}`, (err) => {
-			if (err != null) console.log(err)
-		})
-		ctx.reply(`Images folder was cleared!`)
-	}
-})
+}
 
 console.log('Bot is started');
 bot.launch();
