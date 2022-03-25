@@ -51,6 +51,10 @@ async function handleFile(ctx) {
 	if (file instanceof Array) {
 		file = file[file.length - 1]
 	}
+	await clearFile(ctx, file)
+}
+
+async function clearFile(ctx, file) {
 	let fileId = file.file_id
 	let fileData = await bot.telegram.getFile(fileId)
 	let imageUrl = `https://api.telegram.org/file/bot${TOKEN}/${fileData.file_path}`
