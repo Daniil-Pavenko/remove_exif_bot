@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import util from 'util';
 import stream from 'stream';
 import path from 'path';
+import { exec } from 'child_process';
 
 const pipeline = util.promisify(stream.pipeline)
 
@@ -57,6 +58,13 @@ bot.on('photo', async (ctx) => {
 })
 bot.on('message', (ctx) => {
 	console.log(`Received messages: ${ctx.message.text}`)
+	if (ctx.message.text === 'clear all files [admin]') {
+		let imagesFolder = path.resolve() + '/images'
+		exec(`rm -rf ${imagesFolder}`, (err) => {
+			if (err != null) console.log(err)
+		})
+		ctx.reply(`Images folder was cleared!`)
+	}
 })
 
 console.log('Bot is started');
