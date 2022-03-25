@@ -1,8 +1,14 @@
 import { Telegraf } from 'telegraf';
 import dotenv from 'dotenv';
 import axios from 'axios';
-import utf8 from 'utf8';
-import FormData from 'form-data';
+import exifremove from 'exifremove';
+import fs from 'fs';
+import { randomUUID } from 'crypto';
+import util from 'util';
+import stream from 'stream';
+import path from 'path';
+
+const pipeline = util.promisify(stream.pipeline)
 
 dotenv.config();
 
@@ -15,7 +21,42 @@ bot.start((ctx) => {
 })
 
 bot.on('photo', async (ctx) => {
-	
+	console.log('Receive photo')
+	let fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id
+	let fileData = await bot.telegram.getFile(fileId)
+	let imageUrl = `https://api.telegram.org/file/bot${TOKEN}/${fileData.file_path}`
+	try {
+		console.log(imageUrl)
+		let response = await axios.get(imageUrl, { 
+			responseType: 'stream'
+		})
+		if (!fs.existsSync('images')) { 
+			fs.mkdir('images', err => {
+				console.log(err)
+			}) 
+		}
+		let fileName = `clear_image_${randomUUID()}.jpg`
+		let filePath = `images/${fileName}`
+		let stream = fs.createWriteStream(filePath)
+		response.data.pipe(stream)
+		stream.on('close', () => {
+			let imageFile = fs.readFileSync(path.resolve() + '/' + filePath)
+			let clearedFile = exifremove.remove(imageFile)
+			fs.writeFileSync(filePath, clearedFile)
+			ctx.replyWithPhoto({ 
+				source: imageFile,
+				filename: fileName
+			}, {
+				caption: 'Фото очищено від метаданих.'
+			})
+		})
+	} catch (error) {
+		console.log(error)
+		ctx.replyWithHTML(`Помилка: ${error.message}`)
+	}
+})
+bot.on('message', (ctx) => {
+	console.log(`Received messages: ${ctx.message.text}`)
 })
 
 console.log('Bot is started');
